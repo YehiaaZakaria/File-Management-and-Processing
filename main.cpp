@@ -150,17 +150,6 @@ int main() {
                 break;
         }
 
-//        cout<<"Author Primary Index: "<<endl;
-//        printPrimaryIndex(AuthorPrimaryIndex);
-//        cout<<"Book Primary Index: "<<endl;
-//        printPrimaryIndex(BookPrimaryIndex);
-//        loadSecondaryIndex("AuthorSecondaryIndex.txt", AuthorSecondaryIndex);
-//        cout<<"Author Secondary Index: "<<endl;
-//        printSecondaryIndex(AuthorSecondaryIndex);
-//
-//        cout<<"Book Secondary Index: "<<endl;
-//        printSecondaryIndex(BookSecondaryIndex);
-
     } while (choice != 10);
     return 0;
 }

@@ -90,7 +90,7 @@ void loadSecondaryIndex(string IndexFileName, map<string, vector<string>> &Index
 {
 
     Index.clear();
-    cout<<"inside load"<<endl;
+//    cout<<"inside load"<<endl;
     fstream f;
     f.open(IndexFileName, ios::in | ios::out | ios::app | ios::binary);
     string line;
@@ -228,7 +228,7 @@ int binarySearch(const string& filename, const string& target) {
 
 }
 
-//binary search over book secondary index
+//binary search over Book secondary index
 
 bool compareRecords(const BookRecord& a, const BookRecord& b) {
     return a.authorID < b.authorID;
@@ -449,13 +449,40 @@ int calculateAvailListLength()
     return length;
 }
 
+void compactAvailList() {
+    sort(AuthorAvailList.begin(), AuthorAvailList.end(), [](const AvailListEntry& a, const AvailListEntry& b) {
+        return a.offset < b.offset;
+    });
+
+    vector<AvailListEntry> compactedList;
+
+    for (int i = 0; i < AuthorAvailList.size(); ++i) {
+        AvailListEntry current = AuthorAvailList[i];
+        while (i + 1 < AuthorAvailList.size() && current.offset + current.size == AuthorAvailList[i + 1].offset) {
+            // Merge adjacent records
+            current.size += AuthorAvailList[i + 1].size;
+            ++i;
+        }
+        compactedList.push_back(current);
+    }
+
+    AuthorAvailList.clear();
+    for (int i = 0; i <compactedList.size() ; ++i) {
+//        cout<<compactedList[i].offset<<" "<<compactedList[i].size<<endl;
+        AuthorAvailList.push_back(compactedList[i]);
+    }
+
+    // Update the avail list length
+    availListLength = calculateAvailListLength();
+}
+
 void writeAvailListTofile()
 {
-
     fstream f;
     string fileContent = readFileToString("Authors.txt");
     fileContent = fileContent.substr(availListLength, fileContent.size() - availListLength);
     f.open("Authors.txt", ios::out);
+    compactAvailList();
 
     if(AuthorAvailList.size() == 0)
     {
@@ -545,7 +572,7 @@ void addAuthor(Author& a) {
 
     // loop through the avail list to see if there exists a deleted record where we can add
     int recordLength = strlen(a.Author_ID) + strlen(a.Author_Name) + strlen(a.Address) + 2 + 2; // 2 for the delimiter
-    cout<<recordLength<<endl;
+//    cout<<recordLength<<endl;
     int diff = INT_MAX;
     AvailListEntry ave;
     int index = 0;
@@ -563,6 +590,7 @@ void addAuthor(Author& a) {
     {
         cout << "No space left; add to the end of the file" << endl;
         addToAuthorEnd(a);
+
     }
     else
     {
@@ -573,6 +601,7 @@ void addAuthor(Author& a) {
         availListLength = calculateAvailListLength();
 
     }
+    cout<<"Author Added successfully"<<endl;
     AuthorSecondaryIndex[a.Author_Name].push_back(a.Author_ID);
     writeSecondaryIndex("AuthorSecondaryIndex.txt", AuthorSecondaryIndex);
 }
@@ -631,6 +660,8 @@ void deleteAuthor(string authorID) {
             }
         }
 
+
+
         // Update the secondary index file
         writeSecondaryIndex("AuthorSecondaryIndex.txt", AuthorSecondaryIndex);
 
@@ -643,77 +674,6 @@ void deleteAuthor(string authorID) {
         cout << "Author not found" << endl;
     }
 }
-
-//void deleteAuthor(string authorID) {
-//    auto it = AuthorPrimaryIndex.find(authorID);
-//
-//    if (it != AuthorPrimaryIndex.end()) {
-//        int authorOffset = it->second;
-//
-//        AvailListEntry ave;
-//        ave.offset = authorOffset;
-//
-//        fstream f;
-//        f.open("Authors.txt", ios::in | ios::out | ios::binary);
-//
-//        f.seekg(authorOffset + availListLength, ios::beg);
-//
-//        // Read the first two characters (assuming the size is stored as a two-character string)
-//        char authorSizeBuffer[3];  // One extra character for null terminator
-//        f.read(authorSizeBuffer, sizeof (authorSizeBuffer));
-//        authorSizeBuffer[2] = '\0';  // Null-terminate the string
-//
-//        // Convert the size to an integer
-//        stringstream ss(authorSizeBuffer);
-//        int result;
-//        ss >> result;
-//        ave.size = result;
-//
-//        // Add the entry to the avail list
-//        AuthorAvailList.push_back(ave);
-//        writeAvailListTofile();
-//        availListLength = calculateAvailListLength();
-//
-//        // Move back to the position before the size to overwrite with '*'
-//        f.seekp(authorOffset + availListLength, ios::beg);
-//        f.put('*');
-//
-//        f.close();
-//
-//        // Remove the authorID from the secondary index
-//        auto secondaryIndexIt = AuthorSecondaryIndex.begin();
-//        while (secondaryIndexIt != AuthorSecondaryIndex.end()) {
-//            vector<string>& authorIDs = secondaryIndexIt->second;
-//            auto idIt = find(authorIDs.begin(), authorIDs.end(), authorID);
-//            if (idIt != authorIDs.end()) {
-//                authorIDs.erase(idIt);
-//                if (authorIDs.empty()) {
-//                    // If the vector is empty after removing the ID, remove the entry from the secondary index
-//                    secondaryIndexIt = AuthorSecondaryIndex.erase(secondaryIndexIt);
-//                } else {
-//                    ++secondaryIndexIt;
-//                }
-//            } else {
-//                ++secondaryIndexIt;
-//            }
-//        }
-//
-//        cout << "inside delete author" << endl;
-//
-//        // Update the secondary index file
-//        printSecondaryIndex(AuthorSecondaryIndex);
-//        writeSecondaryIndex("AuthorSecondaryIndex.txt", AuthorSecondaryIndex);
-//
-//        // Remove the entry from the primary index
-//        AuthorPrimaryIndex.erase(it);
-//        writePrimaryIndex("AuthorPrimaryIndex.txt", AuthorPrimaryIndex);
-//
-//        cout << "Author deleted successfully" << endl;
-//    } else {
-//        cout << "Author not found" << endl;
-//    }
-//}
-
 
 void updateAuthor() {
     cout << "Enter author id:" << endl;
@@ -739,7 +699,7 @@ void updateAuthor() {
         string authorAddress;
         vector<string> authorData = splitString(author, '|');
         authorAddress = authorData[2];
-        cout << "Old Author Address: " << authorAddress << endl;
+//        cout << "Old Author Address: " << authorAddress << endl;
 
         delete[] author; // Free the dynamically allocated memory
 

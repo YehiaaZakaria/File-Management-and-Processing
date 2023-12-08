@@ -73,6 +73,33 @@ int calculateBookAvailListLength()
     return length;
 }
 
+void compactBookAvailList() {
+    sort(BookAvailList.begin(), BookAvailList.end(), [](const AvailListEntry& a, const AvailListEntry& b) {
+        return a.offset < b.offset;
+    });
+
+    vector<AvailListEntry> compactedList;
+
+    for (int i = 0; i < BookAvailList.size(); ++i) {
+        AvailListEntry current = BookAvailList[i];
+        while (i + 1 < BookAvailList.size() && current.offset + current.size == BookAvailList[i + 1].offset) {
+            // Merge adjacent records
+            current.size += BookAvailList[i + 1].size;
+            ++i;
+        }
+        compactedList.push_back(current);
+    }
+
+    BookAvailList.clear();
+    for (int i = 0; i <compactedList.size() ; ++i) {
+//        cout<<compactedList[i].offset<<" "<<compactedList[i].size<<endl;
+        BookAvailList.push_back(compactedList[i]);
+    }
+
+    // Update the avail list length
+    availListLength = calculateBookAvailListLength();
+}
+
 void writeBookAvailListTofile()
 {
 
@@ -80,6 +107,7 @@ void writeBookAvailListTofile()
     string fileContent = readFileToString("Books.txt");
     fileContent = fileContent.substr(availListLength, fileContent.size() - availListLength);
     f.open("Books.txt", ios::out);
+    compactBookAvailList();
 
     if(BookAvailList.size() == 0)
     {
@@ -140,7 +168,7 @@ void addToBookOffset(Book& b, AvailListEntry& ave)
     fstream f;
     f.open("Books.txt", ios::in | ios::out | ios::binary);
     f.seekp(ave.offset + availListLength, ios::beg);
-    cout << ave.offset << endl;
+//    cout << ave.offset << endl;
     BookPrimaryIndex[b.ISBN] = ave.offset;
 
     ave.offset = ave.offset + recordLength;
@@ -167,7 +195,7 @@ void addBook(Book&b) {
     // loop through the avail list to see if there exists b deleted record where we can add
 
     int recordLength = strlen(b.ISBN) + strlen(b.Book_Title) + strlen(b.Author_ID) + 2 + 2; // 2 for the delimiter
-    cout<<recordLength<<endl;
+//    cout<<recordLength<<endl;
     int diff = INT_MAX;
     AvailListEntry ave;
     int index = 0;
@@ -195,6 +223,7 @@ void addBook(Book&b) {
         availListLength = calculateBookAvailListLength();
 
     }
+    cout<<"Book Added successfully"<<endl;
     BookSecondaryIndex[b.Author_ID].push_back(b.ISBN);
     writeSecondaryIndex("BookSecondaryIndex.txt", BookSecondaryIndex);
 
