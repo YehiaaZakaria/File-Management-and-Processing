@@ -14,7 +14,7 @@ struct Book
 };
 
 map<string, int> BookPrimaryIndex;
-map<string, vector<int>> BookSecondaryIndex;
+map<string, vector<string>> BookSecondaryIndex;
 vector<AvailListEntry> BookAvailList;
 
 
@@ -195,7 +195,8 @@ void addBook(Book&b) {
         availListLength = calculateBookAvailListLength();
 
     }
-
+    BookSecondaryIndex[b.Author_ID].push_back(b.ISBN);
+    writeSecondaryIndex("BookSecondaryIndex.txt", BookSecondaryIndex);
 
 }
 
@@ -239,6 +240,29 @@ void deleteBook(string isbn) {
         f.put('*');
 
         f.close();
+
+        // Remove the authorID from the secondary index
+        auto secondaryIndexIt = BookSecondaryIndex.begin();
+        while (secondaryIndexIt != BookSecondaryIndex.end()) {
+            vector<string>& ISBNs = secondaryIndexIt->second;
+            auto isbnIt = find(ISBNs.begin(), ISBNs.end(), isbn);
+            if (isbnIt != ISBNs.end()) {
+                ISBNs.erase(isbnIt);
+                if (ISBNs.empty()) {
+                    // If the vector is empty after removing the ID, remove the entry from the secondary index
+                    secondaryIndexIt = BookSecondaryIndex.erase(secondaryIndexIt);
+                } else {
+                    ++secondaryIndexIt;
+                }
+            } else {
+                ++secondaryIndexIt;
+            }
+        }
+
+        // Update the secondary index file
+        writeSecondaryIndex("BookSecondaryIndex.txt", BookSecondaryIndex);
+
+        // Remove the entry from the primary index
         BookPrimaryIndex.erase(it);
         writePrimaryIndex("BookPrimaryIndex.txt", BookPrimaryIndex);
 

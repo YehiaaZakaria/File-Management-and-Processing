@@ -7,12 +7,12 @@ using namespace std;
 
 
 int main() {
+
     loadPrimaryIndex("AuthorPrimaryIndex.txt", AuthorPrimaryIndex);
-
     loadPrimaryIndex("BookPrimaryIndex.txt",BookPrimaryIndex);
-
     loadSecondaryIndex("AuthorSecondaryIndex.txt", AuthorSecondaryIndex);
-    printSecondaryIndex(AuthorSecondaryIndex);
+    loadSecondaryIndex("BookSecondaryIndex.txt",BookSecondaryIndex);
+
     int choice;
 
     do
@@ -33,7 +33,7 @@ int main() {
         switch (choice)
         {
             case 1:
-                loadPrimaryIndex("AuthorPrimaryIndex.txt", AuthorPrimaryIndex);
+//                loadPrimaryIndex("AuthorPrimaryIndex.txt", AuthorPrimaryIndex);
                 //input
                 Author a;
                 cout << "Enter author id:";
@@ -83,19 +83,19 @@ int main() {
                     }
                 }
                 readBooksAvailList();
-                loadPrimaryIndex("BookPrimaryIndex.txt",BookPrimaryIndex);
+//                loadPrimaryIndex("BookPrimaryIndex.txt",BookPrimaryIndex);
                 addBook(b);
                 break;
 
             case 3:
                 readAuthorsAvailList();
-                loadPrimaryIndex("AuthorPrimaryIndex.txt", AuthorPrimaryIndex);
+//                loadPrimaryIndex("AuthorPrimaryIndex.txt", AuthorPrimaryIndex);
                 updateAuthor();
                 break;
 
             case 4:
                 readBooksAvailList();
-                loadPrimaryIndex("BookPrimaryIndex.txt",BookPrimaryIndex);
+//                loadPrimaryIndex("BookPrimaryIndex.txt",BookPrimaryIndex);
                 updateBook();
                 break;
 
@@ -105,7 +105,7 @@ int main() {
                     string isbn;
                     cin >> isbn;
                     readBooksAvailList();
-                    loadPrimaryIndex("BookPrimaryIndex.txt", BookPrimaryIndex);
+//                    loadPrimaryIndex("BookPrimaryIndex.txt", BookPrimaryIndex);
                     deleteBook(isbn);
                 }
                 break;
@@ -121,21 +121,19 @@ int main() {
                     }
 
                     readAuthorsAvailList();
-                    loadPrimaryIndex("AuthorPrimaryIndex.txt", AuthorPrimaryIndex);
+//                    loadPrimaryIndex("AuthorPrimaryIndex.txt", AuthorPrimaryIndex);
                     deleteAuthor(authorID);
-                    cout<<"inside main"<<endl;
-                    printSecondaryIndex(AuthorSecondaryIndex);
                 }
                 break;
 
             case 7:
                 readAuthorsAvailList();
-                loadPrimaryIndex("AuthorPrimaryIndex.txt", AuthorPrimaryIndex);
+//                loadPrimaryIndex("AuthorPrimaryIndex.txt", AuthorPrimaryIndex);
                 printAuthor();
                 break;
             case 8:
                 readBooksAvailList();
-                loadPrimaryIndex("BookPrimaryIndex.txt", BookPrimaryIndex);
+//                loadPrimaryIndex("BookPrimaryIndex.txt", BookPrimaryIndex);
                 printBook();
                 break;
             case 9:
@@ -152,6 +150,10 @@ int main() {
 //        loadSecondaryIndex("AuthorSecondaryIndex.txt", AuthorSecondaryIndex);
         cout<<"Author Secondary Index: "<<endl;
         printSecondaryIndex(AuthorSecondaryIndex);
+
+        cout<<"Book Secondary Index: "<<endl;
+        printSecondaryIndex(BookSecondaryIndex);
+
     } while (choice != 9);
     return 0;
 }

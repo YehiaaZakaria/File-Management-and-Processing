@@ -165,7 +165,6 @@ void writeSecondaryIndex(string IndexFileName, map<string, vector<string>> &Inde
     f.close();
 }
 
-
 void readAuthorsAvailList()
 {
     AuthorAvailList.clear();
