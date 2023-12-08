@@ -18,12 +18,24 @@ struct AvailListEntry
     int size;
 };
 
+struct Record {
+    string id;
+    int value;
+};
+
+struct BookRecord {
+    string authorID;
+    vector<std::string> ISBNs;
+};
+
+
 map<string, int> AuthorPrimaryIndex;
 map<string, vector<string>> AuthorSecondaryIndex;
 vector<AvailListEntry> AuthorAvailList;
 int availListLength;
 
-// helper functions.
+//-------------------------------------------------------------------------
+// helper functions.(used in Author and Book)
 string readFileToString(const string& fileName) {
     std::ifstream inputFile(fileName);
 
@@ -73,21 +85,6 @@ void loadPrimaryIndex(string IndexFileName, map<string, int> &Index)
     }
     f.close();
 };
-
-void printSecondaryIndex(map<string, vector<string>>&index)
-{
-    for (const auto &entry : index) {
-        const string &authorName = entry.first;
-        const vector<string> &authorIDs = entry.second;
-
-        cout << "Author name:" << authorName << endl;
-        cout << "Author IDs:" << endl;
-        for (const string &authorID: authorIDs) {
-            cout << authorID << endl;
-        }
-        cout << endl;
-    }
-}
 
 void loadSecondaryIndex(string IndexFileName, map<string, vector<string>> &Index)
 {
@@ -165,6 +162,247 @@ void writeSecondaryIndex(string IndexFileName, map<string, vector<string>> &Inde
     f.close();
 }
 
+void printSecondaryIndex(map<string, vector<string>>&index)
+{
+    for (const auto &entry : index) {
+        const string &authorName = entry.first;
+        const vector<string> &authorIDs = entry.second;
+
+        cout << "Author name:" << authorName << endl;
+        cout << "Author IDs:" << endl;
+        for (const string &authorID: authorIDs) {
+            cout << authorID << endl;
+        }
+        cout << endl;
+    }
+}
+
+// binary search over author primary index
+int binarySearch(const string& filename, const string& target) {
+    ifstream inputFile(filename);
+    if (!inputFile.is_open()) {
+        cerr << "Error opening file" << endl;
+        return -2;
+    }
+
+    vector<Record> data;
+
+    while (!inputFile.eof()) {
+        Record record;
+        getline(inputFile, record.id, '|');
+        inputFile >> record.value;
+        inputFile.ignore();  // Ignore the newline character
+        data.push_back(record);
+    }
+
+    inputFile.close();
+
+    // Sort the data by ID (assuming it's not already sorted)
+    sort(data.begin(), data.end(), [](const Record& a, const Record& b) {
+        return a.id < b.id;
+    });
+
+    // Perform binary search
+    int left = 0;
+    int right = data.size() - 1;
+
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+
+        if (data[mid].id == target) {
+            // ID found
+//            cout << "ID: " << data[mid].id << ", Value: " << data[mid].value << std::endl;
+            return data[mid].value;
+        }
+
+        if (data[mid].id < target) {
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
+
+    // ID not found
+    cout << "ID not found" << std::endl;
+    return -1;
+
+}
+
+//binary search over book secondary index
+
+bool compareRecords(const BookRecord& a, const BookRecord& b) {
+    return a.authorID < b.authorID;
+}
+
+vector<string> bookbinarySearch(const std::string& filename, const std::string& targetAuthorID) {
+    ifstream inputFile(filename);
+    if (!inputFile.is_open()) {
+        cerr << "Error opening file" << std::endl;
+        return {};
+    }
+
+    vector<BookRecord> data;
+
+    while (!inputFile.eof()) {
+        BookRecord record;
+        getline(inputFile, record.authorID, '|');
+        std::string ISBNList;
+        getline(inputFile, ISBNList);
+        record.ISBNs = splitString(ISBNList, ',');
+        data.push_back(record);
+    }
+
+    inputFile.close();
+
+    // Sort the data by author ID (assuming it's not already sorted)
+    sort(data.begin(), data.end(), compareRecords);
+
+    // Perform binary search
+    int left = 0;
+    int right = data.size() - 1;
+
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+
+        if (data[mid].authorID == targetAuthorID) {
+            // Author ID found
+            return data[mid].ISBNs;
+        }
+
+        if (data[mid].authorID < targetAuthorID) {
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
+
+    // Author ID not found
+    cout << "Author ID not found" << endl;
+    return {};
+}
+
+void writeQueryResult()
+{
+    string query;
+
+    cout << "Enter query: ";
+    // Clear the input buffer to prevent the infinite loop
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    getline(cin, query);
+
+    vector <string> keyWords = splitString(query, ' ');
+
+    //first query
+    if (keyWords[1]=="all" && keyWords[3]=="Authors") {
+        string input = keyWords[6];
+        vector<string> tokens = splitString(input, '=');
+        string id = tokens[1].substr(1, tokens[1].size() - 3);//authorID
+        if (binarySearch("AuthorPrimaryIndex.txt", id)!= -1) {
+            int offset = binarySearch("AuthorPrimaryIndex.txt", id);
+//            cout << "Author with ID " << id << " exists in offset " << offset << endl;
+            fstream f;
+            f.open("Authors.txt", ios::in | ios::binary);
+            f.seekg(offset + availListLength, ios::beg);
+//            cout<<offset+availListLength<<endl;
+            char authorSizeBuffer[3];
+            f.read(authorSizeBuffer, sizeof(authorSizeBuffer));
+            authorSizeBuffer[2] = '\0';
+            char *author = new char[atoi(authorSizeBuffer) + 1];
+//            cout<<authorSizeBuffer<<endl;
+            f.seekg(offset + availListLength, ios::beg);
+
+            f.read(author, atoi(authorSizeBuffer));
+            author[atoi(authorSizeBuffer)] = '\0';
+            vector<string> authorData = splitString(author, '|');
+
+            string authorID = authorData[0].substr(2);  // Extract substring from the third character to the end
+            string authorName = authorData[1];
+            string authorAddress = authorData[2];
+            cout <<  "Id :  " << authorID <<  "  Name :  " << authorName << "  Address : " << authorAddress << "" << endl;
+            delete[] author;
+            f.close();
+        }
+    }
+
+    //second query
+    else if (keyWords[1]=="all" && keyWords[3]=="Books")
+    {
+        string input = keyWords[6];
+        vector<string> tokens = splitString(input, '=');
+        string id = tokens[1].substr(1, tokens[1].size() - 3);//authorID
+
+        if (bookbinarySearch("BookSecondaryIndex.txt", id).empty()) {
+            cout << "No books found with author ID " << id << endl;
+        }
+        else
+        {
+            for (const auto& ISBN : bookbinarySearch("BookSecondaryIndex.txt", id)) {
+
+//                cout << "ISBN : " << ISBN << endl;
+                if (binarySearch("BookPrimaryIndex.txt", ISBN)!= -1) {
+
+                    int offset = binarySearch("BookPrimaryIndex.txt",ISBN);
+//            cout << "Author with ID " << id << " exists in offset " << offset << endl;
+                    fstream f;
+                    f.open("Books.txt", ios::in | ios::binary);
+                    f.seekg(offset + availListLength, ios::beg);
+//            cout<<offset+availListLength<<endl;
+                    char bookSizeBuffer[3];
+                    f.read(bookSizeBuffer, sizeof(bookSizeBuffer));
+                    bookSizeBuffer[2] = '\0';
+                    char *book = new char[atoi(bookSizeBuffer) + 1];
+//            cout<<authorSizeBuffer<<endl;
+                    f.seekg(offset + availListLength, ios::beg);
+
+                    f.read(book, atoi(bookSizeBuffer));
+                    book[atoi(bookSizeBuffer)] = '\0';
+                    vector<string> bookData = splitString(book, '|');
+
+                    string BookISBN = bookData[0].substr(2);  // Extract substring from the third character to the end
+                    string BooKTitle = bookData[1];
+                    string AuthorID = bookData[2];
+                    cout <<  "Book ISBN :  " << BookISBN <<  "  Book Title :  " << BooKTitle << "  Author ID : " << AuthorID << "" << endl;
+                    delete[] book;
+                    f.close();
+                }
+            }
+        }
+
+    }
+
+    //third query
+    else if (keyWords[1]=="Author")
+    {
+        string input = keyWords[7];
+        vector<string> tokens = splitString(input, '=');
+        string id = tokens[1].substr(1, tokens[1].size() - 3);//authorID
+        if (binarySearch("AuthorPrimaryIndex.txt", id)!= -1) {
+            int offset = binarySearch("AuthorPrimaryIndex.txt", id);
+//            cout << "Author with ID " << id << " exists in offset " << offset << endl;
+            fstream f;
+            f.open("Authors.txt", ios::in | ios::binary);
+            f.seekg(offset + availListLength, ios::beg);
+//            cout<<offset+availListLength<<endl;
+            char authorSizeBuffer[3];
+            f.read(authorSizeBuffer, sizeof(authorSizeBuffer));
+            authorSizeBuffer[2] = '\0';
+            char *author = new char[atoi(authorSizeBuffer) + 1];
+//            cout<<authorSizeBuffer<<endl;
+            f.seekg(offset + availListLength, ios::beg);
+
+            f.read(author, atoi(authorSizeBuffer));
+            author[atoi(authorSizeBuffer)] = '\0';
+            vector<string> authorData = splitString(author, '|');
+
+            string authorName = authorData[1];
+            cout << "Name : " << authorName << endl;
+            delete[] author;
+            f.close();
+        }
+    }
+}
+
+//---------------------------------------------------------------------
 void readAuthorsAvailList()
 {
     AuthorAvailList.clear();
@@ -559,3 +797,4 @@ void printAuthor() {
         delete[] author; // Free the dynamically allocated memory
     }
 }
+

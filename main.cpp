@@ -26,7 +26,8 @@ int main() {
         cout << "6. Delete Author (Author ID)\n";
         cout << "7. Print Author (Author ID)\n";
         cout << "8. Print Book (ISBN)\n";
-        cout << "9. Exit\n";
+        cout << "9. Write Query\n";
+        cout << "10. Exit\n";
         cout << "Enter your choice: ";
         cin >> choice;
 
@@ -67,6 +68,7 @@ int main() {
 
                     if (it != BookPrimaryIndex.end()) {
                         cout << "Book already exists" << endl;
+                        break;
                     } else {
                         cout << "Enter Book title:";
                         cin.getline(b.Book_Title, sizeof(b.Book_Title));
@@ -137,10 +139,15 @@ int main() {
                 printBook();
                 break;
             case 9:
+                readAuthorsAvailList();
+                writeQueryResult();
+                break;
+            case 10:
                 cout << "Exiting program.\n";
                 break;
             default:
-                cout << "Invalid choice. Please enter a number between 1 and 9 .\n";
+                cout << "Invalid choice. Please enter a number between 1 and 10 .\n";
+                break;
         }
 
 //        cout<<"Author Primary Index: "<<endl;
@@ -148,13 +155,13 @@ int main() {
 //        cout<<"Book Primary Index: "<<endl;
 //        printPrimaryIndex(BookPrimaryIndex);
 //        loadSecondaryIndex("AuthorSecondaryIndex.txt", AuthorSecondaryIndex);
-        cout<<"Author Secondary Index: "<<endl;
-        printSecondaryIndex(AuthorSecondaryIndex);
+//        cout<<"Author Secondary Index: "<<endl;
+//        printSecondaryIndex(AuthorSecondaryIndex);
+//
+//        cout<<"Book Secondary Index: "<<endl;
+//        printSecondaryIndex(BookSecondaryIndex);
 
-        cout<<"Book Secondary Index: "<<endl;
-        printSecondaryIndex(BookSecondaryIndex);
-
-    } while (choice != 9);
+    } while (choice != 10);
     return 0;
 }
 
