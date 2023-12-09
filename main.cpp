@@ -12,7 +12,10 @@ int main() {
     loadPrimaryIndex("BookPrimaryIndex.txt",BookPrimaryIndex);
     loadSecondaryIndex("AuthorSecondaryIndex.txt", AuthorSecondaryIndex);
     loadSecondaryIndex("BookSecondaryIndex.txt",BookSecondaryIndex);
-
+    readAuthorsAvailList();
+    readBooksAvailList();
+    calculateBookAvailListLength();
+    calculateAvailListLength();
     int choice;
 
     do
@@ -140,6 +143,7 @@ int main() {
                 break;
             case 9:
                 readAuthorsAvailList();
+                readBooksAvailList();
                 writeQueryResult();
                 break;
             case 10:

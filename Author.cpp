@@ -275,9 +275,6 @@ vector<string> bookbinarySearch(const std::string& filename, const std::string& 
             right = mid - 1;
         }
     }
-
-    // Author ID not found
-    cout << "Author ID not found" << endl;
     return {};
 }
 
@@ -342,26 +339,36 @@ void writeQueryResult()
                 if (binarySearch("BookPrimaryIndex.txt", ISBN)!= -1) {
 
                     int offset = binarySearch("BookPrimaryIndex.txt",ISBN);
-//            cout << "Author with ID " << id << " exists in offset " << offset << endl;
+//                    cout << "Book with ISBN " << ISBN << " exists in offset " << offset << endl;
                     fstream f;
                     f.open("Books.txt", ios::in | ios::binary);
                     f.seekg(offset + availListLength, ios::beg);
-//            cout<<offset+availListLength<<endl;
+//                    cout<<offset+availListLength<<endl;
                     char bookSizeBuffer[3];
                     f.read(bookSizeBuffer, sizeof(bookSizeBuffer));
                     bookSizeBuffer[2] = '\0';
                     char *book = new char[atoi(bookSizeBuffer) + 1];
-//            cout<<authorSizeBuffer<<endl;
+//                    cout<<bookSizeBuffer<<endl;
+//                    cout<<"aaaaaaaaaaaaaaaaaaa"<<endl;
                     f.seekg(offset + availListLength, ios::beg);
 
                     f.read(book, atoi(bookSizeBuffer));
                     book[atoi(bookSizeBuffer)] = '\0';
+//                    cout<<"aaaaaaaaaaaaaaaaaaa"<<endl;
+//                    cout<<book<<endl;
                     vector<string> bookData = splitString(book, '|');
-
+//                    for (auto& s : bookData) {
+//                        cout << s << " ";
+//                    }
+//                    cout<<"aaaaaaaaaaaaaaaaaaa"<<endl;
                     string BookISBN = bookData[0].substr(2);  // Extract substring from the third character to the end
+//                    cout<<"aaaaaaaaaaaaaaaaaaa"<<endl;
                     string BooKTitle = bookData[1];
+//                    cout<<"aaaaaaaaaaaaaaaaaaa"<<endl;
                     string AuthorID = bookData[2];
+//                    cout<<"aaaaaaaaaaaaaaaaaaa"<<endl;
                     cout <<  "Book ISBN :  " << BookISBN <<  "  Book Title :  " << BooKTitle << "  Author ID : " << AuthorID << "" << endl;
+//                    cout<<"aaaaaaaaaaaaaaaaaaa"<<endl;
                     delete[] book;
                     f.close();
                 }

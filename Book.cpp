@@ -270,7 +270,7 @@ void deleteBook(string isbn) {
 
         f.close();
 
-        // Remove the authorID from the secondary index
+        // Remove the ISBN from the secondary index
         auto secondaryIndexIt = BookSecondaryIndex.begin();
         while (secondaryIndexIt != BookSecondaryIndex.end()) {
             vector<string>& ISBNs = secondaryIndexIt->second;
@@ -356,6 +356,10 @@ void printBook() {
     cin >> BookISBN;
     auto it = BookPrimaryIndex.find(BookISBN);
 
+    if (it == BookPrimaryIndex.end()) {
+        cout << "Book not found" << endl;
+        return;
+    }
     if (it != BookPrimaryIndex.end()) {
         int bookOffset = it->second;
         fstream f;
